@@ -1,0 +1,511 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Rule Lists by Hand</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column; each step = short explanation, then one live figure, then "try this". */
+:root{
+  --bg:#f7f7f5; --surface:#ffffff; --ink:#17191e; --ink2:#4b505c; --muted:#868b97; --line:#e2e3e7; --soft:#eef0f3;
+  --o0:#1baf7a; --o1:#eb6834; --o2:#2a78d6;
+  --f-display:"Space Grotesk",system-ui,sans-serif; --f-body:"Inter",system-ui,sans-serif; --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121317; --surface:#1a1c21; --ink:#eceef2; --ink2:#b3b8c3; --muted:#7e8391; --line:#2d3038; --soft:#23262d;
+  --o0:#199e70; --o1:#d95926; --o2:#3987e5; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121317; --surface:#1a1c21; --ink:#eceef2; --ink2:#b3b8c3; --muted:#7e8391; --line:#2d3038; --soft:#23262d;
+  --o0:#199e70; --o1:#d95926; --o2:#3987e5; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.6 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 64px}
+main{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.2}
+h1{font-size:34px;font-weight:600}
+h2{font-size:23px;font-weight:600}
+h3{font-size:16px;font-weight:600}
+p{margin:0;max-width:68ch;color:var(--ink2)}
+p strong,li strong{color:var(--ink)}
+.eyebrow{font:500 12px var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+section{display:flex;flex-direction:column;gap:16px}
+.lede{display:flex;flex-direction:column;gap:12px}
+.fig{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+.grid2>*{min-width:0}
+button{font:500 13px var(--f-body);color:var(--ink);background:var(--soft);border:1px solid var(--line);border-radius:7px;padding:6px 11px;cursor:pointer}
+button:hover{border-color:var(--muted)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--o2);outline-offset:2px}
+button.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.chip{display:inline-flex;align-items:center;gap:6px}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:none}
+.mono,td.num,.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;font-size:13px;width:100%}
+th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-weight:500;color:var(--muted);font-size:12px}
+.note{font-size:13px;color:var(--muted)}
+.try{border-left:3px solid var(--line);padding-left:12px;display:flex;flex-direction:column;gap:4px}
+.try ul{margin:0;padding-left:18px;color:var(--ink2);font-size:14px}
+.big{font:600 22px var(--f-display);color:var(--ink)}
+.stat{display:flex;flex-direction:column;gap:2px}
+.stat .lbl{font-size:12px;color:var(--muted)}
+svg{display:block;width:100%;height:auto;overflow:visible}
+svg text{fill:var(--ink2);font:11px var(--f-body)}
+svg .axis{stroke:var(--line)}
+svg .tick{fill:var(--muted);font:10px var(--f-mono)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--ink2)}
+.log{font:12px/1.55 var(--f-mono);color:var(--ink2);background:var(--soft);border-radius:7px;padding:10px 12px;min-height:72px;overflow-x:auto;white-space:pre}
+.bar{height:10px;border-radius:3px}
+.formula{font:13px var(--f-mono);color:var(--ink2);overflow-x:auto;white-space:nowrap}
+#tip{position:fixed;pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:7px 9px;font:12px/1.45 var(--f-mono);color:var(--ink);box-shadow:0 4px 14px rgba(0,0,0,.12);z-index:20}
+input[type=range]{width:100%;accent-color:var(--ink)}
+.map-legend{display:flex;gap:10px;flex-wrap:wrap}
+.pill{font:500 12px var(--f-mono);padding:2px 8px;border-radius:999px;background:var(--soft);color:var(--ink2)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<main>
+<header class="lede">
+  <div class="eyebrow">CS6983 project · learning aid</div>
+  <h1>Rule lists by hand</h1>
+  <p>The catapult model learns <strong>rule lists</strong> from experiments. This page rebuilds it from the smallest possible pieces, with one or two features, so every number can be checked by hand. The outcomes are the ball's three behaviours:</p>
+  <div class="legend" id="legendTop"></div>
+  <p>Each step adds one idea. The data in steps 2 and 3 is the toy example from the report: tool drops at −150 and −60 px from the pivot (ball stationary) and at +40 and +90 px (ball catapulted).</p>
+</header>
+
+<!-- STEP 1 -->
+<section id="s1">
+  <div class="eyebrow">Step 1 of 4</div>
+  <h2>One bucket: counting with pretend counts</h2>
+  <p>Forget rules for a moment. Put every experiment into <strong>one bucket</strong> and ask: how likely was each outcome, given only the experiments before it? Every outcome starts with a pretend count of <span class="mono">0.5</span>, so nothing is ever impossible:</p>
+  <div class="formula">chance of next outcome k = (times k seen so far + 0.5) / (experiments so far + 1.5)</div>
+  <p>Multiply those chances over all experiments and you get the bucket's <strong>likelihood</strong>: how well "one bucket" explains the data. A bucket full of one outcome scores high; a mixed bucket scores low.</p>
+  <div class="fig">
+    <div class="row" id="s1btns"></div>
+    <div class="tablewrap"><table id="s1table"></table></div>
+    <div class="grid2">
+      <div class="stat"><span class="lbl">likelihood of this bucket (product of the last column)</span><span class="big num" id="s1like"></span><span class="note">On its own this number means little: it shrinks with every experiment you add. It is only ever compared with other candidates' scores on the same data, which is what step 2 does.</span></div>
+      <div class="stat"><span class="lbl">prediction for the next experiment</span><div id="s1pred"></div></div>
+    </div>
+  </div>
+  <div class="try"><h3>Try this</h3><ul>
+    <li>Reset, then add four <em>stationary</em>: each one is less surprising than the last (chances 0.33, 0.60, 0.71, 0.78), and the likelihood ends at 0.11.</li>
+    <li>Now add one <em>catapult</em>: its chance is only 0.5/5.5 = 0.09, and the likelihood drops by that factor.</li>
+    <li>Pure beats mixed: two experiments (stat, stat) score 0.33 × 0.60 = 0.20, while (stat, cat) score 0.33 × 0.20 = 0.067. Bigger is better.</li>
+  </ul>
+  <p class="note"><strong>Why pure buckets score higher.</strong> The likelihood is "how well did the bucket see each outcome coming?" In a pure bucket every new experiment repeats what the bucket has already seen, so each chance is larger than the last (0.33, 0.60, 0.71, 0.78…). In a mixed bucket every switch to a different outcome is a surprise and gets a small chance (0.14, 0.09…), and those small factors drag the product down. So a rule that sorts experiments into pure buckets explains them better than one mixed bucket. One caution: every factor is below 1, so a bucket's score also shrinks as it holds more experiments. Only compare candidates that explain the same full set of experiments, as step 2 does.</p>
+  <ul style="display:none">
+    <li>The default data (stat, stat, cat, cat) gives <span class="mono">1/3 × 3/5 × 1/7 × 1/3 = 1/105 ≈ 0.0095</span>: the "no rule" number in the report.</li>
+  </ul></div>
+</section>
+
+<!-- STEP 2 -->
+<section id="s2">
+  <div class="eyebrow">Step 2 of 4</div>
+  <h2>One rule on one feature: the rule only sorts, the buckets predict</h2>
+  <p>Now there is one feature, <span class="mono">x = tool.x − pivot.x</span>, and at most one rule: <span class="mono">IF x &lt; t</span> (or <span class="mono">x &gt; t</span>), with the rest going to the <strong>default</strong> bucket. The rule has <strong>no outcome</strong> of its own. It only decides which experiments go into which bucket; each bucket then predicts from its own counts, exactly as in step 1.</p>
+  <p>The model's question is which rule to believe. Every candidate gets <strong>prior × likelihood</strong>. The prior gives "no rule" 1/3 and "one rule" 2/3, shared evenly over both directions and every cutoff from −200 to 200. Divide by the total and you have the <strong>posterior</strong>.</p>
+  <div class="fig">
+    <div class="row"><span class="note">Click the top strip to add an experiment as:</span><span class="row" id="s2pick"></span></div>
+    <div class="row"><button id="s2toy">Toy example</button><button id="s2noisy">Add a surprise</button><button id="s2clear">Clear</button><span class="note">Click a dot to remove it.</span></div>
+    <svg id="s2svg" viewBox="0 0 800 360" role="img" aria-label="Experiments on a number line, posterior over the cutoff, and predicted outcome at each x"></svg>
+    <div class="legend" id="legend2"></div>
+    <div class="grid2">
+      <div class="stat"><span class="lbl">P(no rule)</span><span class="big num" id="s2p0"></span></div>
+      <div class="stat"><span class="lbl">P(one rule, any cutoff)</span><span class="big num" id="s2p1"></span></div>
+    </div>
+    <div class="formula" id="s2how" style="white-space:normal"></div>
+  </div>
+
+  <div class="fig">
+    <h3>Inspect one candidate</h3>
+    <div class="row" id="s2mode"></div>
+    <label class="note" for="s2t">cutoff t = <span class="mono" id="s2tval"></span></label>
+    <input type="range" id="s2t" min="-199.5" max="199.5" step="1" value="-10.5">
+    <div class="tablewrap"><table id="s2buckets"></table></div>
+    <div class="formula" id="s2score"></div>
+    <p class="note" id="s2group"></p>
+  </div>
+  <div class="try"><h3>Try this</h3><ul>
+    <li>Slide t between −60 and +40: both buckets are pure, the likelihood is <span class="mono">(1/3 × 3/5) × (1/3 × 3/5) = 1/5 × 1/5 = 1/25 = 0.04</span>. Slide it to between −150 and −60: the buckets are {stat} and {stat, cat, cat}, and the likelihood falls to <span class="mono">1/3 × (1/3 × 1/5 × 3/7) = 1/3 × 1/35 = 1/105 ≈ 0.0095</span>.</li>
+    <li>Moving t <em>within</em> a gap between dots changes nothing. That is why the posterior over t (middle band) is flat between dots.</li>
+    <li>Hover the bottom band at x = 0: the prediction is about (0.41, 0.47, 0.12). The model is unsure there because the posterior is split between cutoffs left and right of 0.</li>
+    <li>Add more stationary dots on the left and catapult on the right: P(one rule) climbs toward 1.</li>
+  </ul></div>
+</section>
+
+<!-- STEP 3 -->
+<section id="s3">
+  <div class="eyebrow">Step 3 of 4</div>
+  <h2>Search instead of listing: Metropolis–Hastings</h2>
+  <p>Step 2 listed all 801 candidates. The real model has far too many to list, so it <strong>wanders</strong>: propose a small edit, compute how much better or worse it is, keep it with that probability. Run it on the step-2 data and watch the visit frequencies converge to the exact answer from step 2.</p>
+  <p>Edits used here. From "no rule": <strong>add</strong> a random rule. From a rule: <strong>remove</strong> it (half the time), or <strong>re-pick the cutoff</strong> exactly in proportion to likelihood (the other half; always kept). The add/remove decision uses</p>
+  <div class="formula">accept if random &lt; (prior ratio) × (likelihood ratio) × (Hastings correction)</div>
+  <p class="note">The Hastings correction is (chance of proposing the reverse edit) / (chance of proposing this edit). From "no rule" the only edit is ADD (chance 1); from a rule, REMOVE is proposed half the time (chance 1/2). So ADD gets 1/2 ÷ 1 = 0.5 and REMOVE gets 1 ÷ 1/2 = 2. Without it, rules would be entered more easily than left, and the chain would spend too little time at "no rule".</p>
+  <div class="fig" style="gap:8px">
+    <h3>Worked example on the toy data</h3>
+    <p class="note">Scores from step 2: one mixed bucket ("no rule") has likelihood 1/3 × 3/5 × 1/7 × 1/3 = 1/105. A rule with its cutoff in the −60…+40 gap has (1/3 × 3/5) × (1/3 × 3/5) = 1/25. Prior ratio of "one rule" to "no rule" = (2/3) ÷ (1/3) = 2. (Each rule's prior is the 2/3 for "one rule" shared over 2 directions × 400 cutoffs = 800 rules: (2/3) × (1/2) × (1/400) = (2/3) × 1/800 = 1/1200. ADD proposes a specific rule with chance 1/800 too, so the 1/800 cancels and only the 2 remains.)</p>
+    <p class="note">Both likelihoods multiply four chances, one per experiment. They differ because each experiment is predicted only by the earlier experiments <em>in its own bucket</em>:</p>
+    <div class="tablewrap"><table>
+      <tr><th>experiment</th><th>no rule: one bucket</th><th>gap rule: own bucket</th></tr>
+      <tr><td>stat (x = −150)</td><td class="num">(0+0.5)/(0+1.5) = 1/3</td><td class="num">(0+0.5)/(0+1.5) = 1/3</td></tr>
+      <tr><td>stat (x = −60)</td><td class="num">(1+0.5)/(1+1.5) = 3/5</td><td class="num">(1+0.5)/(1+1.5) = 3/5</td></tr>
+      <tr><td>cat (x = +40)</td><td class="num">(0+0.5)/(2+1.5) = 1/7</td><td class="num">(0+0.5)/(0+1.5) = 1/3</td></tr>
+      <tr><td>cat (x = +90)</td><td class="num">(1+0.5)/(3+1.5) = 1/3</td><td class="num">(1+0.5)/(1+1.5) = 3/5</td></tr>
+      <tr><td><strong>product</strong></td><td class="num">1/3 × 3/5 × 1/7 × 1/3 = 1/105</td><td class="num">1/3 × 3/5 × 1/3 × 3/5 = 1/25</td></tr>
+    </table></div>
+    <p class="note">The catapults are the difference: in the mixed bucket they follow two stationary experiments and are a surprise (1/7); in their own bucket they start fresh (1/3) and then repeat (3/5). Ratio: (1/25) ÷ (1/105) = 105/25 = 4.2.</p>
+    <div class="tablewrap"><table>
+      <tr><th>edit</th><th>prior ratio × likelihood ratio × Hastings</th><th>keep with probability</th></tr>
+      <tr><td>no rule → ADD a gap rule</td><td class="num">2 × (1/25 ÷ 1/105) × 0.5 = 2 × 4.2 × 0.5 = 4.2</td><td class="num">min(1, 4.2) = 1</td></tr>
+      <tr><td>gap rule → REMOVE</td><td class="num">(1/2) × (1/105 ÷ 1/25) × 2 = 0.5 × 0.238 × 2 = 0.238</td><td class="num">0.238</td></tr>
+      <tr><td>no rule → ADD a non-gap rule</td><td class="num">2 × (1/105 ÷ 1/105) × 0.5 = 2 × 1 × 0.5 = 1</td><td class="num">1</td></tr>
+      <tr><td>non-gap rule → REMOVE</td><td class="num">(1/2) × 1 × 2 = 1</td><td class="num">1</td></tr>
+    </table></div>
+    <p class="note">So the chain jumps into gap rules easily and leaves them reluctantly (24% of REMOVE proposals). That is how it ends up spending more time on the rules that explain the data better.</p>
+  </div>
+  <div class="fig">
+    <div class="row"><button id="s3one">1 step</button><button id="s3hund">100 steps</button><button id="s3thou">5,000 steps</button><button id="s3reset">Reset</button><span class="pill" id="s3n"></span></div>
+    <div class="log" id="s3log"></div>
+    <svg id="s3svg" viewBox="0 0 800 250" role="img" aria-label="Visit frequencies of the sampler compared with the exact posterior"></svg>
+    <div class="legend"><span class="chip"><span class="dot" style="background:var(--ink)"></span>MCMC visit frequency</span><span class="chip"><span class="dot" style="background:transparent;border:2px solid var(--muted)"></span>exact posterior (step 2)</span></div>
+  </div>
+  <div class="try"><h3>Try this</h3><ul>
+    <li>Click 1 step a few times and read the log: each line shows the three factors and whether the edit was kept.</li>
+    <li>Run 5,000 steps: the filled bars settle onto the outlines, and the "no rule" bar settles near the exact P(no rule).</li>
+    <li>The real model does the same, with 21 features, up to 6 rules of up to 3 conditions, and more kinds of edits.</li>
+  </ul></div>
+</section>
+
+<!-- STEP 4 -->
+<section id="s4">
+  <div class="eyebrow">Step 4 of 4</div>
+  <h2>Two features and AND: why conditions combine</h2>
+  <p>Add a second feature, <span class="mono">h = drop height above the arm</span>. A rule may now test one feature or both joined by <strong>AND</strong>. The prior prefers one condition (2/3) over two (1/3), so the model only uses AND when the data needs it. Cutoffs are on a 10 px grid here so all 6,561 candidates can be listed exactly.</p>
+  <div class="fig">
+    <div class="row"><span class="note">Click the map to add an experiment as:</span><span class="row" id="s4pick"></span></div>
+    <div class="row"><button id="s4and">Needs AND</button><button id="s4xonly">x alone is enough</button><button id="s4clear">Clear</button><span class="note">Click a dot to remove it.</span></div>
+    <div class="grid2">
+      <svg id="s4svg" viewBox="0 0 420 420" role="img" aria-label="Predicted outcome over tool x and drop height, with experiments as dots"></svg>
+      <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+        <h3>Posterior over what the rule tests</h3>
+        <div id="s4groups"></div>
+        <h3>Most probable single candidate</h3>
+        <div class="formula" id="s4map" style="white-space:normal"></div>
+        <div class="tablewrap"><table id="s4buckets"></table></div>
+      </div>
+    </div>
+    <div class="legend" id="legend4"></div>
+    <p class="note">Map colour = predicted outcome (posterior average), stronger = more confident.</p>
+  </div>
+  <div class="try"><h3>Try this</h3><ul>
+    <li><strong>Needs AND</strong>: catapult only when x &gt; 0 <em>and</em> h &gt; 200. P(x AND h) dominates, and the map shows a corner.</li>
+    <li><strong>x alone is enough</strong>: catapult whenever x &gt; 0. Now "x only" wins: an AND rule fits just as well, but its prior is smaller (the Occam effect).</li>
+    <li>Add a few points to break the corner and watch the posterior shift between structures.</li>
+  </ul></div>
+</section>
+
+<section>
+  <div class="eyebrow">Back to the real model</div>
+  <h2>Same machinery, bigger numbers</h2>
+  <div class="tablewrap"><table>
+    <tr><th></th><th>This page</th><th>Catapult experiment</th></tr>
+    <tr><td>features</td><td class="num">1–2</td><td class="num">21 relational offsets</td></tr>
+    <tr><td>rules per list</td><td class="num">0–1</td><td class="num">0–6, prior Poisson(2)</td></tr>
+    <tr><td>conditions per rule</td><td class="num">1–2</td><td class="num">1–3, prior Poisson(1)</td></tr>
+    <tr><td>experiments</td><td class="num">a handful</td><td class="num">1 demo + 100 interventions</td></tr>
+    <tr><td>inference</td><td>exact listing, or MH</td><td>MH only (4 chains, 600 kept samples)</td></tr>
+    <tr><td>bucket prediction</td><td colspan="2">(count + 0.5) / (bucket size + 1.5), averaged over posterior samples</td></tr>
+  </table></div>
+</section>
+</main>
+<div id="tip" hidden></div>
+
+<script id="math">
+// ---------- shared math (pure) ----------
+const A = 0.5, K = 3;
+const OUT = ['stationary', 'catapult', 'rolling'];
+function logSeq(c) { let n = c[0] + c[1] + c[2], s = 0;
+  for (let k = 0; k < 3; k++) for (let i = 0; i < c[k]; i++) s += Math.log(A + i);
+  for (let i = 0; i < n; i++) s -= Math.log(K * A + i); return s; }
+function pred(c) { const n = c[0] + c[1] + c[2]; return c.map(v => (v + A) / (n + K * A)); }
+const P0 = 1 / 3, P1 = 2 / 3;
+const T2 = Array.from({ length: 400 }, (_, i) => -199.5 + i);
+const fires = (dir, t, v) => dir === 0 ? v < t : v > t;
+function compute2(pts) {
+  const all = [0, 0, 0]; pts.forEach(p => all[p.y]++);
+  const l0 = logSeq(all), hyps = [];
+  const lp1 = Math.log(P1 * 0.5 / 400);
+  for (const dir of [0, 1]) for (const t of T2) {
+    const cin = [0, 0, 0], cout = [0, 0, 0];
+    for (const p of pts) (fires(dir, t, p.x) ? cin : cout)[p.y]++;
+    const ll = logSeq(cin) + logSeq(cout);
+    hyps.push({ dir, t, cin, cout, ll, lw: lp1 + ll });
+  }
+  const lw0 = Math.log(P0) + l0;
+  const m = Math.max(lw0, ...hyps.map(h => h.lw));
+  let Z = Math.exp(lw0 - m); hyps.forEach(h => Z += Math.exp(h.lw - m));
+  const post0 = Math.exp(lw0 - m) / Z; hyps.forEach(h => h.post = Math.exp(h.lw - m) / Z);
+  return { all, l0, post0, hyps };
+}
+function predict2(R, xq) {
+  const out = pred(R.all).map(v => v * R.post0);
+  for (const h of R.hyps) { const p = pred(fires(h.dir, h.t, xq) ? h.cin : h.cout); for (let k = 0; k < 3; k++) out[k] += h.post * p[k]; }
+  return out;
+}
+// step 4: features x in [-200,200], h in [0,400]; cutoffs on 10px grid, data on multiples of 10
+const CX = Array.from({ length: 40 }, (_, i) => -195 + 10 * i), CH = Array.from({ length: 40 }, (_, i) => 5 + 10 * i);
+const CONDS = [];
+for (const f of [0, 1]) for (const dir of [0, 1]) for (const t of (f ? CH : CX)) CONDS.push({ f, dir, t });
+function compute4(pts) {
+  const all = [0, 0, 0]; pts.forEach(p => all[p.y]++);
+  const fire = CONDS.map(c => pts.map(p => fires(c.dir, c.t, c.f ? p.h : p.x)));
+  const hyps = [{ conds: [], lp: Math.log(P0), ll: logSeq(all), cin: null, cout: all }];
+  const c1 = Math.log(P1 * (2 / 3) * 0.5 * 0.5 / 40), c2 = Math.log(P1 * (1 / 3) * Math.pow(0.5 / 40, 2));
+  const add = (ids, lp) => {
+    const cin = [0, 0, 0], cout = [0, 0, 0];
+    pts.forEach((p, j) => (ids.every(i => fire[i][j]) ? cin : cout)[p.y]++);
+    hyps.push({ conds: ids, lp, ll: logSeq(cin) + logSeq(cout), cin, cout });
+  };
+  CONDS.forEach((c, i) => add([i], c1));
+  const xs = CONDS.map((c, i) => i).filter(i => CONDS[i].f === 0), hs = CONDS.map((c, i) => i).filter(i => CONDS[i].f === 1);
+  for (const i of xs) for (const j of hs) add([i, j], c2);
+  const m = Math.max(...hyps.map(h => h.lp + h.ll)); let Z = 0;
+  hyps.forEach(h => { h.w = Math.exp(h.lp + h.ll - m); Z += h.w; }); hyps.forEach(h => h.post = h.w / Z);
+  const groups = { none: 0, x: 0, h: 0, both: 0 };
+  hyps.forEach(h => { const k = h.conds.length === 0 ? 'none' : h.conds.length === 2 ? 'both' : CONDS[h.conds[0]].f ? 'h' : 'x'; groups[k] += h.post; });
+  return { all, hyps, groups };
+}
+const QX = Array.from({ length: 39 }, (_, i) => -190 + 10 * i), QH = Array.from({ length: 39 }, (_, i) => 10 + 10 * i);
+function map4(R) {
+  const M = QH.map(() => QX.map(() => [0, 0, 0]));
+  for (const h of R.hyps) {
+    if (h.post < 1e-7) continue;
+    const pIn = h.cin ? pred(h.cin) : null, pOut = pred(h.cout);
+    const fx = QX.map(x => h.conds.every(i => CONDS[i].f === 1 || fires(CONDS[i].dir, CONDS[i].t, x)));
+    const fh = QH.map(v => h.conds.every(i => CONDS[i].f === 0 || fires(CONDS[i].dir, CONDS[i].t, v)));
+    for (let r = 0; r < QH.length; r++) for (let c = 0; c < QX.length; c++) {
+      const p = (h.conds.length && fx[c] && fh[r]) ? pIn : pOut, cell = M[r][c];
+      cell[0] += h.post * p[0]; cell[1] += h.post * p[1]; cell[2] += h.post * p[2];
+    }
+  }
+  return M;
+}
+if (typeof module !== 'undefined') module.exports = { logSeq, pred, compute2, predict2, compute4, map4, QX, QH };
+</script>
+
+<script>
+// ---------- helpers ----------
+const $ = id => document.getElementById(id);
+const NS = 'http://www.w3.org/2000/svg';
+const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+const oc = k => `var(--o${k})`;
+const fmt = (v, d = 3) => v.toFixed(d);
+const pct = v => (100 * v).toFixed(1) + '%';
+const sci = v => v >= 0.001 ? v.toFixed(4) : v.toExponential(2);
+const chip = k => `<span class="chip"><span class="dot" style="background:${oc(k)}"></span>${OUT[k]}</span>`;
+const tip = $('tip');
+let st3, visits, vNull, nStep, logLines; // step-3 sampler state (declared early: step 2 resets it)
+function showTip(e, html) { tip.innerHTML = html; tip.hidden = false; const w = tip.offsetWidth; let x = e.clientX + 14; if (x + w > innerWidth - 8) x = e.clientX - w - 14; tip.style.left = x + 'px'; tip.style.top = (e.clientY + 12) + 'px'; }
+const hideTip = () => tip.hidden = true;
+function svgPoint(svg, e) { const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; return p.matrixTransform(svg.getScreenCTM().inverse()); }
+function predBars(p) { return `<div style="display:flex;flex-direction:column;gap:5px">` + p.map((v, k) =>
+  `<div style="display:grid;grid-template-columns:92px 1fr 46px;gap:8px;align-items:center;font-size:13px"><span>${chip(k)}</span><div class="bar" style="width:${Math.max(2, v * 100)}%;background:${oc(k)}"></div><span class="num">${fmt(v, 2)}</span></div>`).join('') + `</div>`; }
+function picker(container, state) {
+  container.innerHTML = '';
+  OUT.forEach((o, k) => { const b = document.createElement('button'); b.innerHTML = chip(k); b.className = state.k === k ? 'on' : '';
+    b.onclick = () => { state.k = k; picker(container, state); }; container.appendChild(b); });
+}
+['legendTop', 'legend2', 'legend4'].forEach(id => $(id).innerHTML = OUT.map((o, k) => chip(k)).join(''));
+
+// ---------- STEP 1 ----------
+let seq1 = [0, 0, 1, 1];
+(function () {
+  const box = $('s1btns');
+  OUT.forEach((o, k) => { const b = document.createElement('button'); b.innerHTML = '+ ' + chip(k); b.onclick = () => { if (seq1.length < 14) { seq1.push(k); render1(); } }; box.appendChild(b); });
+  const u = document.createElement('button'); u.textContent = 'Undo'; u.onclick = () => { seq1.pop(); render1(); }; box.appendChild(u);
+  const r = document.createElement('button'); r.textContent = 'Reset'; r.onclick = () => { seq1 = []; render1(); }; box.appendChild(r);
+})();
+function render1() {
+  const c = [0, 0, 0]; let prod = 1;
+  let html = '<tr><th>#</th><th>outcome</th><th>counts before (stat / cat / roll)</th><th>chance it had</th><th>running product</th></tr>';
+  seq1.forEach((y, i) => { const n = c[0] + c[1] + c[2], ch = (c[y] + A) / (n + K * A); prod *= ch;
+    html += `<tr><td class="num">${i + 1}</td><td>${chip(y)}</td><td class="num">${c.join(' / ')}</td><td class="num">(${c[y]} + 0.5) / (${n} + 1.5) = ${fmt(ch)}</td><td class="num">${sci(prod)}</td></tr>`; c[y]++; });
+  if (!seq1.length) html += '<tr><td colspan="5" class="note">Empty bucket. Add an experiment above.</td></tr>';
+  $('s1table').innerHTML = html;
+  $('s1like').textContent = seq1.length ? sci(prod) : '1 (nothing to explain yet)';
+  $('s1pred').innerHTML = predBars(pred(c));
+}
+render1();
+
+// ---------- STEP 2 ----------
+const TOY = [{ x: -150, y: 0 }, { x: -60, y: 0 }, { x: 40, y: 1 }, { x: 90, y: 1 }];
+let pts2 = TOY.map(p => ({ ...p })), R2 = null; const pick2 = { k: 0 };
+const ex = { mode: 0, t: -10.5 }; // mode: -1 none, 0 '<', 1 '>'
+const SX = x => 40 + (x + 200) / 400 * 720, IX = px => (px - 40) / 720 * 400 - 200;
+picker($('s2pick'), pick2);
+$('s2toy').onclick = () => { pts2 = TOY.map(p => ({ ...p })); update2(); };
+$('s2noisy').onclick = () => { pts2.push({ x: 70, y: 2 }); update2(); };
+$('s2clear').onclick = () => { pts2 = []; update2(); };
+(function () {
+  const box = $('s2mode');
+  [[-1, 'no rule (one bucket)'], [0, 'IF x < t'], [1, 'IF x > t']].forEach(([m, lab]) => {
+    const b = document.createElement('button'); b.textContent = lab; b.dataset.m = m; b.onclick = () => { ex.mode = m; renderExplorer(); draw2(); }; box.appendChild(b); });
+  $('s2t').oninput = e => { ex.t = +e.target.value; renderExplorer(); draw2(); };
+})();
+function update2() { R2 = compute2(pts2); draw2(); renderExplorer(); $('s2p0').textContent = pct(R2.post0); $('s2p1').textContent = pct(1 - R2.post0);
+  const W0 = P0 * Math.exp(R2.l0), W1 = R2.hyps.reduce((s, h) => s + Math.exp(h.lw), 0);
+  $('s2how').innerHTML = `How: no rule scores (1/3) × ${sci(Math.exp(R2.l0))} = ${sci(W0)}. ` +
+    `The 800 one-rule candidates (2 directions × 400 cutoffs, each prior 1/1200) score ${sci(W1)} in total. ` +
+    `P(one rule) = ${sci(W1)} / (${sci(W1)} + ${sci(W0)}) = ${pct(1 - R2.post0)}.`;
+  reset3(); }
+function draw2() {
+  const svg = $('s2svg'); svg.innerHTML = '';
+  // band labels
+  const lab = (y, t) => el('text', { x: 40, y, style: 'font-weight:500;fill:var(--ink)' }, svg).textContent = t;
+  lab(14, 'experiments (click to add)'); lab(92, 'posterior over the cutoff t'); lab(250, 'prediction at each x (hover)');
+  // data strip
+  el('rect', { x: 40, y: 22, width: 720, height: 44, rx: 6, fill: 'var(--soft)' }, svg);
+  // posterior over t
+  const v = T2.map((t, i) => R2.hyps[i].post + R2.hyps[i + 400].post), vmax = Math.max(...v, 1e-12);
+  const y0 = 228, H = 120; let d = `M ${SX(-200)} ${y0}`;
+  T2.forEach((t, i) => { const y = y0 - v[i] / vmax * H; d += ` L ${SX(t - 0.5)} ${y} L ${SX(t + 0.5)} ${y}`; }); d += ` L ${SX(200)} ${y0} Z`;
+  el('path', { d, fill: 'var(--ink)', 'fill-opacity': .14, stroke: 'var(--ink2)', 'stroke-width': 1.2 }, svg);
+  el('line', { x1: 40, x2: 760, y1: y0, y2: y0, class: 'axis' }, svg);
+  // prediction band
+  const yb = 340, HB = 80, step = 4;
+  for (let x = -200; x <= 200; x += step) {
+    const p = predict2(R2, x); let y = yb;
+    for (let k = 0; k < 3; k++) { const h = p[k] * HB; el('rect', { x: SX(x - step / 2) + .4, y: y - h, width: 720 * step / 400 - .8, height: Math.max(0, h - .6), fill: oc(k) }, svg); y -= h; }
+  }
+  const hov = el('rect', { x: 40, y: yb - HB, width: 720, height: HB, fill: 'transparent', style: 'cursor:crosshair' }, svg);
+  hov.addEventListener('mousemove', e => { const x = Math.round(IX(svgPoint(svg, e).x)); const p = predict2(R2, Math.max(-200, Math.min(200, x)));
+    showTip(e, `x = ${x}<br>` + p.map((v, k) => `<span style="color:${oc(k)}">●</span> ${OUT[k].padEnd(10)} ${fmt(v, 2)}`).join('<br>')); });
+  hov.addEventListener('mouseleave', hideTip);
+  // axis ticks
+  [-200, -100, 0, 100, 200].forEach(x => { el('line', { x1: SX(x), x2: SX(x), y1: yb, y2: yb + 5, class: 'axis' }, svg); const t = el('text', { x: SX(x), y: yb + 17, 'text-anchor': 'middle', class: 'tick' }, svg); t.textContent = x; });
+  const xl = el('text', { x: 400, y: yb + 19, 'text-anchor': 'middle', class: 'tick', dy: 0 }, svg);
+  // explorer cutoff line
+  if (ex.mode >= 0) { el('line', { x1: SX(ex.t), x2: SX(ex.t), y1: 20, y2: yb, stroke: 'var(--ink)', 'stroke-dasharray': '4 3', 'stroke-width': 1.2 }, svg);
+    const t = el('text', { x: SX(ex.t) + 4, y: 78, class: 'tick' }, svg); t.textContent = `t = ${ex.t}`; }
+  // click to add
+  const strip = el('rect', { x: 40, y: 22, width: 720, height: 44, fill: 'transparent', style: 'cursor:copy' }, svg);
+  strip.addEventListener('click', e => { const x = Math.round(IX(svgPoint(svg, e).x)); if (x < -199 || x > 199) return; pts2.push({ x, y: pick2.k }); update2(); });
+  // dots (stack duplicates)
+  const seen = {};
+  pts2.forEach((p, i) => { const s = seen[p.x] = (seen[p.x] || 0) + 1;
+    const c = el('circle', { cx: SX(p.x), cy: 44 - (s - 1) * 9, r: 7, fill: oc(p.y), stroke: 'var(--surface)', 'stroke-width': 2, style: 'cursor:pointer' }, svg);
+    c.addEventListener('click', ev => { ev.stopPropagation(); pts2.splice(i, 1); hideTip(); update2(); });
+    c.addEventListener('mousemove', e => showTip(e, `x = ${p.x}, ${OUT[p.y]}<br>click to remove`)); c.addEventListener('mouseleave', hideTip); });
+}
+function renderExplorer() {
+  document.querySelectorAll('#s2mode button').forEach(b => b.className = (+b.dataset.m === ex.mode) ? 'on' : '');
+  $('s2tval').textContent = ex.t; $('s2t').disabled = ex.mode < 0;
+  const row = (name, c) => { const p = pred(c), n = c[0] + c[1] + c[2];
+    return `<tr><td>${name}</td><td class="num">${n}</td><td class="num">${c.join(' / ')}</td><td class="num">${sci(Math.exp(logSeq(c)))}</td><td>${n ? chip(p.indexOf(Math.max(...p))) + ' <span class="num">' + fmt(Math.max(...p), 2) + '</span>' : '<span class="note">empty: (1/3, 1/3, 1/3)</span>'}</td></tr>`; };
+  let html = '<tr><th>bucket</th><th>experiments</th><th>stat / cat / roll</th><th>bucket likelihood</th><th>bucket predicts</th></tr>';
+  let ll, prior;
+  if (ex.mode < 0) { html += row('the one bucket', R2.all); ll = R2.l0; prior = P0; $('s2group').textContent = `"No rule" is a single candidate: posterior ${pct(R2.post0)}.`; }
+  else {
+    const h = R2.hyps[ex.mode * 400 + T2.indexOf(ex.t)];
+    html += row(`rule fires (x ${ex.mode ? '>' : '<'} ${ex.t})`, h.cin) + row('default (everything else)', h.cout); ll = h.ll; prior = P1 * 0.5 / 400;
+    const key = h.cin.join(), same = R2.hyps.filter(g => g.dir === h.dir && g.cin.join() === key);
+    const lo = Math.min(...same.map(g => g.t)), hi = Math.max(...same.map(g => g.t));
+    $('s2group').textContent = `Every cutoff from ${lo} to ${hi} (same direction) puts the experiments into the same buckets, so they all score the same. Together they hold ${pct(same.reduce((s, g) => s + g.post, 0))} of the posterior.`;
+  }
+  $('s2buckets').innerHTML = html;
+  const L = Math.exp(ll);
+  let likeTxt = sci(L);
+  if (ex.mode >= 0) { const h = R2.hyps[ex.mode * 400 + T2.indexOf(ex.t)];
+    likeTxt = `${sci(Math.exp(logSeq(h.cin)))} (rule bucket) × ${sci(Math.exp(logSeq(h.cout)))} (default) = ${sci(L)}`; }
+  $('s2score').innerHTML = `likelihood = ${likeTxt}<br>prior = ${ex.mode < 0 ? '1/3' : '(2/3)·(1/2)·(1/400)'} = ${sci(prior)}<br>prior × likelihood = ${sci(prior * L)}` +
+    (ex.mode < 0 ? '' : `<br><span class="note">Every experiment lands in exactly one bucket and is predicted only by the earlier experiments in that bucket, so the total likelihood splits into one factor per bucket.</span>`);
+}
+update2();
+
+// ---------- STEP 3 ----------
+function reset3() { st3 = null; visits = new Float64Array(800); vNull = 0; nStep = 0; logLines = ['Start: no rule. Press "1 step".']; render3(); }
+function gibbs() { const m = Math.max(...R2.hyps.map(h => h.ll)); let Z = 0; const w = R2.hyps.map(h => (Z += Math.exp(h.ll - m), Math.exp(h.ll - m)));
+  let u = Math.random() * Z; for (let i = 0; i < w.length; i++) { u -= w[i]; if (u <= 0) return i; } return w.length - 1; }
+const rtxt = i => { const h = R2.hyps[i]; return `IF x ${h.dir ? '>' : '<'} ${h.t}`; };
+function step3(verbose) {
+  let line = '';
+  if (st3 === null) {
+    const i = Math.floor(Math.random() * 800), h = R2.hyps[i];
+    const pr = P1 / P0, lr = Math.exp(h.ll - R2.l0), hc = 0.5, r = pr * lr * hc, ok = Math.random() < r;
+    if (verbose) line = `no rule → propose ADD "${rtxt(i)}": ${fmt(pr, 2)} × ${sci(lr)} × ${hc} = ${sci(r)} → ${ok ? 'kept' : 'rejected'}`;
+    if (ok) st3 = i;
+  } else if (Math.random() < 0.5) {
+    const h = R2.hyps[st3]; const pr = P0 / P1, lr = Math.exp(R2.l0 - h.ll), hc = 2, r = pr * lr * hc, ok = Math.random() < r;
+    if (verbose) line = `"${rtxt(st3)}" → propose REMOVE: ${fmt(pr, 2)} × ${sci(lr)} × ${hc} = ${sci(r)} → ${ok ? 'kept' : 'rejected'}`;
+    if (ok) st3 = null;
+  } else { const old = st3; st3 = gibbs(); if (verbose) line = `"${rtxt(old)}" → RE-PICK cutoff exactly (∝ likelihood): now "${rtxt(st3)}" (always kept)`; }
+  if (st3 === null) vNull++; else visits[st3]++; nStep++;
+  if (verbose) { logLines.push(`${String(nStep).padStart(5)}  ${line}`); if (logLines.length > 6) logLines.shift(); }
+}
+$('s3one').onclick = () => { step3(true); render3(); };
+$('s3hund').onclick = () => { for (let i = 0; i < 99; i++) step3(false); step3(true); render3(); };
+$('s3thou').onclick = () => { for (let i = 0; i < 4999; i++) step3(false); step3(true); render3(); };
+$('s3reset').onclick = reset3;
+function render3() {
+  $('s3log').textContent = logLines.join('\n'); $('s3n').textContent = `${nStep} steps · now: ${st3 === null ? 'no rule' : rtxt(st3)}`;
+  const svg = $('s3svg'); svg.innerHTML = '';
+  const BW = 20, bins = 20, exact = new Array(bins).fill(0), emp = new Array(bins).fill(0);
+  R2.hyps.forEach((h, i) => { const b = Math.min(bins - 1, Math.floor((h.t + 200) / BW)); exact[b] += h.post; emp[b] += nStep ? visits[i] / nStep : 0; });
+  const e0 = R2.post0, m0 = nStep ? vNull / nStep : 0;
+  const ymax = Math.max(e0, m0, ...exact, ...emp, 0.05), y0 = 200, H = 170;
+  const X0 = 150, W = 610, bw = W / bins;
+  // "no rule" bar
+  const bar = (x, w, v, filled) => el('rect', filled ? { x: x + 3, y: y0 - v / ymax * H, width: w - 6, height: v / ymax * H, fill: 'var(--ink)', 'fill-opacity': .75, rx: 2 }
+    : { x: x + 1.5, y: y0 - v / ymax * H, width: w - 3, height: v / ymax * H, fill: 'none', stroke: 'var(--muted)', 'stroke-width': 2, rx: 2 }, svg);
+  bar(40, 70, m0, true); bar(40, 70, e0, false);
+  let t = el('text', { x: 75, y: y0 + 16, 'text-anchor': 'middle', class: 'tick' }, svg); t.textContent = 'no rule';
+  t = el('text', { x: 75, y: y0 + 30, 'text-anchor': 'middle', class: 'tick' }, svg); t.textContent = `${fmt(m0, 3)} vs ${fmt(e0, 3)}`;
+  for (let b = 0; b < bins; b++) { bar(X0 + b * bw, bw, emp[b], true); bar(X0 + b * bw, bw, exact[b], false); }
+  el('line', { x1: 40, x2: 760, y1: y0, y2: y0, class: 'axis' }, svg);
+  [-200, -100, 0, 100, 200].forEach(x => { const px = X0 + (x + 200) / 400 * W; const tt = el('text', { x: px, y: y0 + 16, 'text-anchor': 'middle', class: 'tick' }, svg); tt.textContent = x; });
+  t = el('text', { x: X0 + W / 2, y: y0 + 32, 'text-anchor': 'middle', class: 'tick' }, svg); t.textContent = 'cutoff t (20 px bins, both directions)';
+  t = el('text', { x: 40, y: 14, style: 'font-weight:500;fill:var(--ink)' }, svg); t.textContent = 'share of steps spent in each state';
+}
+reset3();
+
+// ---------- STEP 4 ----------
+const AND_SET = [], XONLY_SET = [];
+for (const x of [-150, -60, 40, 120]) for (const h of [80, 170, 260, 350]) { AND_SET.push({ x, h, y: (x > 0 && h > 200) ? 1 : 0 }); XONLY_SET.push({ x, h, y: x > 0 ? 1 : 0 }); }
+let pts4 = AND_SET.map(p => ({ ...p })); const pick4 = { k: 1 };
+picker($('s4pick'), pick4);
+$('s4and').onclick = () => { pts4 = AND_SET.map(p => ({ ...p })); update4(); };
+$('s4xonly').onclick = () => { pts4 = XONLY_SET.map(p => ({ ...p })); update4(); };
+$('s4clear').onclick = () => { pts4 = []; update4(); };
+const MX = x => 40 + (x + 200) / 400 * 360, MY = h => 380 - h / 400 * 360;
+const IMX = px => (px - 40) / 360 * 400 - 200, IMY = py => (380 - py) / 360 * 400;
+const condTxt = i => { const c = CONDS[i]; return `${c.f ? 'h' : 'x'} ${c.dir ? '>' : '<'} ${c.t}`; };
+function update4() {
+  const R = compute4(pts4), M = map4(R), svg = $('s4svg'); svg.innerHTML = '';
+  for (let r = 0; r < QH.length; r++) for (let c = 0; c < QX.length; c++) {
+    const p = M[r][c], k = p.indexOf(Math.max(...p));
+    const cell = el('rect', { x: MX(QX[c] - 5), y: MY(QH[r] + 5), width: 360 / 40 + .3, height: 360 / 40 + .3, fill: oc(k), 'fill-opacity': Math.max(0.06, (p[k] - 1 / 3) * 1.4) }, svg);
+    cell.addEventListener('mousemove', e => showTip(e, `x = ${QX[c]}, h = ${QH[r]}<br>` + p.map((v, kk) => `<span style="color:${oc(kk)}">●</span> ${OUT[kk].padEnd(10)} ${fmt(v, 2)}`).join('<br>')));
+    cell.addEventListener('mouseleave', hideTip);
+    cell.addEventListener('click', e => { const q = svgPoint(svg, e); const x = Math.max(-190, Math.min(190, Math.round(IMX(q.x) / 10) * 10)), h = Math.max(10, Math.min(390, Math.round(IMY(q.y) / 10) * 10)); pts4.push({ x, h, y: pick4.k }); hideTip(); update4(); });
+  }
+  el('rect', { x: 40, y: 20, width: 360, height: 360, fill: 'none', stroke: 'var(--line)' }, svg);
+  [-200, 0, 200].forEach(x => { const t = el('text', { x: MX(x), y: 396, 'text-anchor': 'middle', class: 'tick' }, svg); t.textContent = x; });
+  [0, 200, 400].forEach(h => { const t = el('text', { x: 34, y: MY(h) + 3, 'text-anchor': 'end', class: 'tick' }, svg); t.textContent = h; });
+  let t = el('text', { x: 220, y: 414, 'text-anchor': 'middle' }, svg); t.textContent = 'x = tool.x − pivot.x';
+  t = el('text', { x: 12, y: 200, 'text-anchor': 'middle', transform: 'rotate(-90 12 200)' }, svg); t.textContent = 'h = drop height';
+  pts4.forEach((p, i) => { const c = el('circle', { cx: MX(p.x), cy: MY(p.h), r: 6.5, fill: oc(p.y), stroke: 'var(--surface)', 'stroke-width': 2, style: 'cursor:pointer' }, svg);
+    c.addEventListener('click', ev => { ev.stopPropagation(); pts4.splice(i, 1); hideTip(); update4(); });
+    c.addEventListener('mousemove', e => showTip(e, `x = ${p.x}, h = ${p.h}, ${OUT[p.y]}<br>click to remove`)); c.addEventListener('mouseleave', hideTip); });
+  const G = R.groups, rows = [['no rule', G.none], ['tests x only', G.x], ['tests h only', G.h], ['tests x AND h', G.both]];
+  $('s4groups').innerHTML = rows.map(([n, v]) => `<div style="display:grid;grid-template-columns:112px 1fr 56px;gap:8px;align-items:center;font-size:13px"><span>${n}</span><div class="bar" style="width:${Math.max(1.5, v * 100)}%;background:var(--ink);opacity:.75"></div><span class="num">${pct(v)}</span></div>`).join('');
+  const best = R.hyps.reduce((a, b) => b.post > a.post ? b : a);
+  $('s4map').innerHTML = best.conds.length ? `IF ${best.conds.map(condTxt).join(' AND ')} → bucket 1, ELSE → default &nbsp;<span class="pill">posterior ${pct(best.post)}</span>` : `no rule &nbsp;<span class="pill">posterior ${pct(best.post)}</span>`;
+  const brow = (n, c) => { const p = pred(c); return `<tr><td>${n}</td><td class="num">${c.join(' / ')}</td><td class="num">${p.map(v => fmt(v, 2)).join(' / ')}</td></tr>`; };
+  $('s4buckets').innerHTML = '<tr><th>bucket</th><th>stat / cat / roll</th><th>predicts</th></tr>' + (best.cin ? brow('bucket 1 (rule fires)', best.cin) : '') + brow('default', best.cout);
+}
+update4();
+</script>
+
+</body></html>
